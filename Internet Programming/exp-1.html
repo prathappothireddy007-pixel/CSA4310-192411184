@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head><title>Library Management System</title></head>
+<body>
+<h2>Library Management System - Connected to Excel</h2>
+<form id="libForm">
+BookID: <input type="text" id="bookId" required><br><br>
+Title: <input type="text" id="title" required><br><br>
+Author: <input type="text" id="author" required><br><br>
+Category: <input type="text" id="category"><br><br>
+MemberID: <input type="text" id="memberId"><br><br>
+MemberName: <input type="text" id="memberName"><br><br>
+Action: <select id="action"><option>Add Book</option><option>Issue</option><option>Return</option></select><br><br>
+<button type="submit">Save to Excel Sheet</button>
+</form>
+<p id="msg" style="color:green;font-weight:bold;"></p>
+<hr>
+<h3>Live Excel Sheet View</h3>
+<button onclick="loadData()">Refresh</button><br><br>
+<table border="1" id="liveTable"><tr><th>Date</th><th>BookID</th><th>Title</th><th>Author</th><th>Category</th><th>MemberID</th><th>MemberName</th><th>Action</th></tr></table>
+<br>
+<a href="https://docs.google.com/spreadsheets/d/1TAxKpbszzC-wDI60w18SMuPGCHSUSBHZ3vH-L7HWtxc/edit" target="_blank">Open Excel Sheet (Faculty View)</a>
+<br><br>
+<iframe width="100%" height="350" src="https://docs.google.com/spreadsheets/d/1TAxKpbszzC-wDI60w18SMuPGCHSUBH3ZvH-L7HWtxc/pubhtml?widget=true&headers=false"></iframe>
+
+<script>
+const scriptURL = 'https://script.google.com/macros/s/AKfycbyyPqkcanBttCloSextvExKtql9WT1GMKxuMRLrNgd3zXDFPwrwK2AZq2ljg4-Na01VSw/exec';
+document.getElementById('libForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  document.getElementById('msg').innerText="Saving...";
+  fetch(scriptURL,{method:'POST',mode:'no-cors',body:JSON.stringify({
+    bookId:bookId.value, title:title.value, author:author.value, category:category.value,
+    memberId:memberId.value, memberName:memberName.value, action:action.value
+  })}).then(()=>{msg.innerText="Saved to Excel Sheet!"; libForm.reset(); setTimeout(loadData,2500);});
+});
+function loadData(){
+  fetch(scriptURL).then(r=>r.json()).then(rows=>{
+    liveTable.innerHTML='<tr><th>Date</th><th>BookID</th><th>Title</th><th>Author</th><th>Category</th><th>MemberID</th><th>MemberName</th><th>Action</th></tr>';
+    rows.reverse().forEach(r=>{let tr=liveTable.insertRow();tr.insertCell(0).innerText=r.date;tr.insertCell(1).innerText=r.bookId;tr.insertCell(2).innerText=r.title;tr.insertCell(3).innerText=r.author;tr.insertCell(4).innerText=r.category;tr.insertCell(5).innerText=r.memberId;tr.insertCell(6).innerText=r.memberName;tr.insertCell(7).innerText=r.action;});
+  });
+}
+loadData();
+</script>
+</body>
+</html>

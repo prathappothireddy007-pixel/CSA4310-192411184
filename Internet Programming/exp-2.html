@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hotel Booking</title>
+<style>
+body{font-family:Arial;margin:0;background:#f2f5f9}
+header{background:#123456;color:white;padding:20px;text-align:center}
+nav{text-align:center;padding:15px;background:#ddd}
+nav button{margin:5px;padding:10px;border:0;cursor:pointer}
+section{background:white;margin:20px auto;padding:20px;max-width:700px;border-radius:8px}
+input,select,textarea{padding:10px;margin:6px;width:90%}
+button{padding:10px;background:#1677cc;color:white;border:0;cursor:pointer}
+.room{padding:12px;background:#eaf2fa;margin:10px 0}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Grand Hotel</h1>
+<p>Comfortable Rooms, Happy Stay</p>
+</header>
+
+<nav>
+<button onclick="show('home')">Home</button>
+<button onclick="show('register')">Register</button>
+<button onclick="show('booking')">Book Room</button>
+<button onclick="show('history')">My Bookings</button>
+<button onclick="show('admin')">Admin</button>
+<button onclick="show('contact')">Contact</button>
+</nav>
+
+<section id="home">
+<h2>Welcome to Grand Hotel</h2>
+<p>Choose your room and enjoy a comfortable stay.</p>
+<div class="room">Single Room - ₹1500 per day</div>
+<div class="room">Double Room - ₹2500 per day</div>
+<div class="room">Deluxe Room - ₹3500 per day</div>
+<div class="room">Suite Room - ₹5000 per day</div>
+<h3>Amenities</h3>
+<p>Free Wi-Fi, Room Service, Restaurant and Parking.</p>
+<h3>Customer Service Q&A</h3>
+<p>Check-in: 12 PM. Check-out: 11 AM.</p>
+<p>Cancellation is allowed up to 3 days before arrival.</p>
+<h3>Local Travel Guide</h3>
+<p>Contact the reception for nearby attractions and transport.</p>
+<h3>Privacy Policy</h3>
+<p>Customer details are used only for hotel services.</p>
+</section>
+
+<section id="register" hidden>
+<h2>User Registration</h2>
+<input id="name" placeholder="Full Name">
+<input id="email" type="email" placeholder="Email">
+<input id="phone" placeholder="Phone Number">
+<input id="password" type="password" placeholder="Password">
+<button onclick="register()">Register</button>
+<p id="msg"></p>
+</section>
+
+<section id="booking" hidden>
+<h2>Book a Room</h2>
+<input id="guest" placeholder="Guest Name">
+<select id="type">
+<option value="Single">Single Room - ₹1500</option>
+<option value="Double">Double Room - ₹2500</option>
+<option value="Deluxe">Deluxe Room - ₹3500</option>
+<option value="Suite">Suite Room - ₹5000</option>
+</select>
+<input id="arrival" type="date">
+<input id="departure" type="date">
+<input id="guests" type="number" min="1" value="1" placeholder="Number of Guests">
+<button onclick="book()">Check Availability and Book</button>
+<p id="bookingMsg"></p>
+</section>
+
+<section id="history" hidden>
+<h2>Booking History</h2>
+<div id="list"></div>
+</section>
+
+<section id="admin" hidden>
+<h2>Administrator Login</h2>
+<input id="adminPass" type="password" placeholder="Admin Password">
+<button onclick="adminLogin()">Login</button>
+<div id="adminPanel" hidden>
+<h3>Update Room Price</h3>
+<select id="adminType">
+<option>Single</option>
+<option>Double</option>
+<option>Deluxe</option>
+<option>Suite</option>
+</select>
+<input id="price" type="number" placeholder="New Price">
+<input id="quantity" type="number" placeholder="Total Rooms">
+<button onclick="updateRooms()">Update Rooms</button>
+<h3>All Bookings</h3>
+<div id="adminList"></div>
+</div>
+</section>
+
+<section id="contact" hidden>
+<h2>Contact Us</h2>
+<p>Email: grandhotel@example.com</p>
+<p>Phone: 9876543210</p>
+<textarea placeholder="Your Message"></textarea>
+<button onclick="alert('Message submitted')">Send Message</button>
+</section>
+
+<script>
+let users=JSON.parse(localStorage.users||"[]");
+let bookings=JSON.parse(localStorage.bookings||"[]");
+let rooms=JSON.parse(localStorage.rooms||'{"Single":{"price":1500,"qty":10},"Double":{"price":2500,"qty":10},"Deluxe":{"price":3500,"qty":5},"Suite":{"price":5000,"qty":3}}');
+let currentUser=localStorage.currentUser||"";
+
+function show(id){
+document.querySelectorAll("section").forEach(s=>s.hidden=true);
+document.getElementById(id).hidden=false;
+if(id==="history") history();
+}
+
+function register(){
+if(!name.value||!email.value||!password.value){
+msg.innerText="Fill all required fields";
+return;
+}
+if(users.some(u=>u.email===email.value)){
+msg.innerText="Email already registered";
+return;
+}
+users.push({name:name.value,email:email.value,password:password.value,phone:phone.value});
+localStorage.users=JSON.stringify(users);
+currentUser=email.value;
+localStorage.currentUser=currentUser;
+msg.innerText="Registration successful";
+}
+
+function book(){
+let a=arrival.value,d=departure.value;
+if(!guest.value||!a||!d||!guests.value){
+bookingMsg.innerText="Fill all fields";
+return;
+}
+if(new Date(a)<new Date(new Date().toDateString())||new Date(d)<=new Date(a)){
+bookingMsg.innerText="Select valid dates";
+return;
+}
+let days=(new Date(d)-new Date(a))/86400000;
+let available=bookings.filter(b=>b.type===type.value&&b.status==="Booked"&&a<b.departure&&d>b.arrival).length;
+if(available>=rooms[type.value].qty){
+bookingMsg.innerText="No rooms available for these dates";
+return;
+}
+let b={id:Date.now(),guest:guest.value,type:type.value,arrival:a,departure:d,guests:guests.value,price:rooms[type.value].price*days,status:"Booked",email:currentUser};
+bookings.push(b);
+localStorage.bookings=JSON.stringify(bookings);
+bookingMsg.innerText="Booking successful. Total: ₹"+b.price;
+}
+
+function history(){
+list.innerHTML="";
+bookings.filter(b=>b.email===currentUser).forEach(b=>{
+list.innerHTML+=`<div class="room">Booking ${b.id}<br>${b.type} Room<br>${b.arrival} to ${b.departure}<br>₹${b.price}<br>Status: ${b.status}<br><button onclick="cancel(${b.id})">Cancel</button></div>`;
+});
+}
+
+function cancel(id){
+let b=bookings.find(b=>b.id===id);
+let days=(new Date(b.arrival)-new Date())/86400000;
+if(days<3){
+alert("Cancellation requires at least 3 days before arrival");
+return;
+}
+b.status="Cancelled";
+localStorage.bookings=JSON.stringify(bookings);
+history();
+}
+
+function adminLogin(){
+if(adminPass.value==="admin123"){
+adminPanel.hidden=false;
+adminList();
+}else alert("Invalid password");
+}
+
+function updateRooms(){
+rooms[adminType.value].price=Number(price.value)||rooms[adminType.value].price;
+rooms[adminType.value].qty=Number(quantity.value)||rooms[adminType.value].qty;
+localStorage.rooms=JSON.stringify(rooms);
+alert("Room details updated");
+}
+
+function adminList(){
+adminListElement();
+}
+
+function adminListElement(){
+document.getElementById("adminList").innerHTML=bookings.map(b=>`<div class="room">ID: ${b.id} | ${b.guest} | ${b.type} | ${b.status}<br><button onclick="adminCancel(${b.id})">Cancel Booking</button></div>`).join("");
+}
+
+function adminCancel(id){
+let b=bookings.find(b=>b.id===id);
+b.status="Cancelled";
+localStorage.bookings=JSON.stringify(bookings);
+adminListElement();
+}
+</script>
+</body>
+</html>

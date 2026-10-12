@@ -1,0 +1,649 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Online Cake Ordering System</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;margin:0;background:#fff5f7;color:#333}
+header{background:#9d174d;color:white;text-align:center;padding:25px}
+nav{background:#fbcfe8;text-align:center;padding:12px}
+button{background:#be185d;color:white;border:0;padding:10px 14px;margin:4px;cursor:pointer;border-radius:4px}
+button:hover{background:#831843}
+section{background:white;max-width:1000px;margin:22px auto;padding:22px;border-radius:8px}
+input,select,textarea{width:100%;padding:11px;margin:8px 0;border:1px solid #ddd;border-radius:4px}
+.cake{background:#fff1f2;padding:15px;margin:12px 0;border-radius:8px}
+.cake img{width:100%;max-width:220px;height:150px;object-fit:cover;border-radius:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px}
+.hidden{display:none}
+.price{color:#be185d;font-weight:bold}
+@media(max-width:600px){section{margin:10px;padding:15px}nav button{padding:8px}}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Sweet Cake Shop</h1>
+<p>Make Every Celebration Sweeter</p>
+</header>
+
+<nav>
+<button onclick="show('home')">Home</button>
+<button onclick="show('register')">Register</button>
+<button onclick="show('login')">Login</button>
+<button onclick="show('shop')">Shop Cakes</button>
+<button onclick="show('cart')">My Cart</button>
+<button onclick="show('orders')">My Orders</button>
+<button onclick="show('admin')">Admin</button>
+<button onclick="logout()">Logout</button>
+</nav>
+
+<section id="home">
+<h2>Welcome to Sweet Cake Shop</h2>
+<p>Discover delicious cakes for birthdays, weddings and special occasions.</p>
+<div class="grid">
+<div class="cake">
+<img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400" alt="Chocolate cake">
+<h3>Chocolate Cake</h3>
+<p>Rich chocolate cake for every celebration.</p>
+<button onclick="show('shop')">Shop Now</button>
+</div>
+<div class="cake">
+<img src="https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400" alt="Strawberry cake">
+<h3>Strawberry Cake</h3>
+<p>Fresh strawberry flavor with creamy frosting.</p>
+<button onclick="show('shop')">Shop Now</button>
+</div>
+</div>
+</section>
+
+<section id="register" class="hidden">
+<h2>Student Registration</h2>
+<input id="regName" placeholder="Full Name">
+<input id="regEmail" type="email" placeholder="Email">
+<input id="regPassword" type="password" placeholder="Password">
+<button onclick="register()">Register</button>
+<p id="regMsg"></p>
+</section>
+
+<section id="login" class="hidden">
+<h2>User Login</h2>
+<input id="loginEmail" type="email" placeholder="Email">
+<input id="loginPassword" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="loginMsg"></p>
+</section>
+
+<section id="shop" class="hidden">
+<h2>Search and Filter Cakes</h2>
+<input id="search" placeholder="Search cake name or flavor" oninput="showCakes()">
+<select id="category" onchange="showCakes()">
+<option value="">All Categories</option>
+<option>Birthday</option>
+<option>Wedding</option>
+<option>Chocolate</option>
+<option>Fruit</option>
+</select>
+<select id="subcategory" onchange="showCakes()">
+<option value="">All Flavors</option>
+<option>Chocolate</option>
+<option>Vanilla</option>
+<option>Strawberry</option>
+<option>Butterscotch</option>
+</select>
+<select id="priceFilter" onchange="showCakes()">
+<option value="">All Prices</option>
+<option value="500">Below ₹500</option>
+<option value="1000">₹500 - ₹1000</option>
+<option value="1001">Above ₹1000</option>
+</select>
+<div id="cakeList" class="grid"></div>
+</section>
+
+<section id="details" class="hidden">
+<h2>Cake Details</h2>
+<div id="cakeDetails"></div>
+</section>
+
+<section id="cart" class="hidden">
+<h2>My Cart</h2>
+<div id="cartList"></div>
+<h3 id="cartTotal"></h3>
+<button onclick="show('checkout')">Place Order</button>
+</section>
+
+<section id="checkout" class="hidden">
+<h2>Shipping and Payment</h2>
+<input id="shipName" placeholder="Recipient Name">
+<input id="shipPhone" placeholder="Phone Number">
+<textarea id="shipAddress" placeholder="Complete Shipping Address"></textarea>
+<input id="shipCity" placeholder="City">
+<input id="shipPin" placeholder="PIN Code">
+<select id="payment">
+<option>Cash on Delivery</option>
+<option>UPI Demo</option>
+<option>Card Demo</option>
+</select>
+<button onclick="placeOrder()">Confirm Order</button>
+<p id="orderMsg"></p>
+</section>
+
+<section id="orders" class="hidden">
+<h2>My Orders</h2>
+<div id="orderList"></div>
+</section>
+
+<section id="admin" class="hidden">
+<h2>Admin Login</h2>
+<input id="adminPassword" type="password" placeholder="Admin Password">
+<button onclick="adminLogin()">Login</button>
+
+<div id="adminPanel" class="hidden">
+<h3>Post Cake Details</h3>
+<input id="cakeName" placeholder="Cake Name">
+<select id="cakeCategory">
+<option>Birthday</option>
+<option>Wedding</option>
+<option>Chocolate</option>
+<option>Fruit</option>
+</select>
+<select id="cakeFlavor">
+<option>Chocolate</option>
+<option>Vanilla</option>
+<option>Strawberry</option>
+<option>Butterscotch</option>
+</select>
+<textarea id="cakeDescription" placeholder="Cake Description"></textarea>
+<input id="cakePrice" type="number" min="1" placeholder="Price">
+<input id="cakeImage" placeholder="Image URL">
+<input id="cakeStock" type="number" min="0" placeholder="Available Quantity">
+<button onclick="addCake()">Add Cake</button>
+
+<h3>Manage Products</h3>
+<div id="adminCakes"></div>
+
+<h3>Manage Orders and Shipping Status</h3>
+<div id="adminOrders"></div>
+</div>
+</section>
+
+<script>
+const KEY="sweet_cake_shop_lab_v1";
+
+function initialData(){
+return{
+users:[],
+cakes:[
+{id:1,name:"Chocolate Cake",category:"Chocolate",flavor:"Chocolate",description:"Rich chocolate cake topped with chocolate cream.",price:450,stock:20,image:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400"},
+{id:2,name:"Vanilla Birthday Cake",category:"Birthday",flavor:"Vanilla",description:"Soft vanilla sponge with delicious cream frosting.",price:600,stock:15,image:"https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=400"},
+{id:3,name:"Strawberry Cake",category:"Fruit",flavor:"Strawberry",description:"Sweet strawberry cake made for celebrations.",price:750,stock:12,image:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400"},
+{id:4,name:"Wedding Cake",category:"Wedding",flavor:"Butterscotch",description:"Elegant butterscotch cake for special occasions.",price:1500,stock:8,image:"https://images.unsplash.com/photo-1535254973040-607b474cb50d?w=400"}
+],
+carts:[],
+orders:[]
+};
+}
+
+function loadData(){
+try{
+let d=JSON.parse(localStorage.getItem(KEY));
+if(d&&d.users&&d.cakes&&d.carts&&d.orders)return d;
+}catch(e){}
+return initialData();
+}
+
+let data=loadData();
+let currentUser=localStorage.getItem("cake_shop_user")||"";
+
+function save(){
+localStorage.setItem(KEY,JSON.stringify(data));
+}
+
+function val(id){
+return document.getElementById(id).value.trim();
+}
+
+function show(id){
+document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
+if(id==="shop")showCakes();
+if(id==="cart")showCart();
+if(id==="orders")showOrders();
+if(id==="admin"&&sessionStorage.getItem("cake_admin")==="yes"){
+adminPanel.classList.remove("hidden");
+refreshAdmin();
+}
+}
+
+function register(){
+let name=val("regName"),email=val("regEmail").toLowerCase(),password=val("regPassword");
+if(!name||!email||!password){
+regMsg.textContent="Fill all fields";
+return;
+}
+if(data.users.some(u=>u.email===email)){
+regMsg.textContent="Email already registered";
+return;
+}
+data.users.push({name,email,password});
+save();
+regMsg.textContent="Registration successful. Please log in.";
+}
+
+function login(){
+let email=val("loginEmail").toLowerCase(),password=val("loginPassword");
+let u=data.users.find(u=>u.email===email&&u.password===password);
+if(!u){
+loginMsg.textContent="Invalid email or password";
+return;
+}
+currentUser=email;
+localStorage.setItem("cake_shop_user",email);
+loginMsg.textContent="Login successful";
+}
+
+function logout(){
+currentUser="";
+localStorage.removeItem("cake_shop_user");
+show("home");
+alert("Logged out successfully");
+}
+
+function showCakes(){
+let q=val("search").toLowerCase();
+let cat=val("category");
+let flavor=val("subcategory");
+let price=val("priceFilter");
+
+let cakes=data.cakes.filter(c=>
+c.name.toLowerCase().includes(q)&&
+(!cat||c.category===cat)&&
+(!flavor||c.flavor===flavor)&&
+(!price||(price==="500"?c.price<500:price==="1000"?c.price>=500&&c.price<=1000:c.price>1000))
+);
+
+cakeList.innerHTML="";
+
+if(!cakes.length){
+cakeList.textContent="No cakes found.";
+return;
+}
+
+cakes.forEach(c=>{
+let d=document.createElement("div");
+d.className="cake";
+let img=document.createElement("img");
+img.src=c.image||"";
+img.alt=c.name;
+img.onerror=()=>img.style.display="none";
+d.appendChild(img);
+
+let h=document.createElement("h3");
+h.textContent=c.name;
+d.appendChild(h);
+
+let p=document.createElement("p");
+p.textContent=c.description;
+d.appendChild(p);
+
+let priceText=document.createElement("p");
+priceText.className="price";
+priceText.textContent="₹"+c.price+" | Stock: "+c.stock;
+d.appendChild(priceText);
+
+let details=document.createElement("button");
+details.textContent="View Details";
+details.onclick=()=>viewDetails(c.id);
+d.appendChild(details);
+
+let add=document.createElement("button");
+add.textContent="Add to Cart";
+add.disabled=c.stock<=0;
+add.onclick=()=>addToCart(c.id);
+d.appendChild(add);
+
+cakeList.appendChild(d);
+});
+}
+
+function viewDetails(id){
+let c=data.cakes.find(c=>c.id===id);
+if(!c)return;
+cakeDetails.innerHTML="";
+let img=document.createElement("img");
+img.src=c.image;
+img.alt=c.name;
+img.style.maxWidth="300px";
+img.onerror=()=>img.style.display="none";
+cakeDetails.appendChild(img);
+
+let title=document.createElement("h3");
+title.textContent=c.name;
+cakeDetails.appendChild(title);
+
+let desc=document.createElement("p");
+desc.textContent=c.description;
+cakeDetails.appendChild(desc);
+
+let price=document.createElement("p");
+price.textContent="Category: "+c.category+" | Flavor: "+c.flavor+" | Price: ₹"+c.price;
+cakeDetails.appendChild(price);
+
+let size=document.createElement("select");
+size.id="cakeSize";
+["500 g","1 kg","2 kg"].forEach(s=>{
+let o=document.createElement("option");
+o.textContent=s;
+size.appendChild(o);
+});
+cakeDetails.appendChild(size);
+
+let message=document.createElement("input");
+message.id="cakeMessage";
+message.placeholder="Cake message (optional)";
+cakeDetails.appendChild(message);
+
+let btn=document.createElement("button");
+btn.textContent="Add Customized Cake";
+btn.disabled=c.stock<=0;
+btn.onclick=()=>addToCart(id,size.value,message.value);
+cakeDetails.appendChild(btn);
+
+show("details");
+}
+
+function addToCart(id,size="1 kg",message=""){
+if(!currentUser){
+alert("Please log in first");
+show("login");
+return;
+}
+
+let c=data.cakes.find(c=>c.id===id);
+if(!c||c.stock<=0){
+alert("Cake is out of stock");
+return;
+}
+
+let cart=data.carts.find(x=>x.email===currentUser&&x.cakeId===id&&x.size===size&&x.message===message);
+
+if(cart)cart.quantity++;
+else data.carts.push({email:currentUser,cakeId:id,size,message,quantity:1});
+
+save();
+alert("Cake added to cart");
+}
+
+function showCart(){
+cartList.innerHTML="";
+if(!currentUser){
+cartList.textContent="Please log in to view your cart";
+cartTotal.textContent="";
+return;
+}
+
+let items=data.carts.filter(x=>x.email===currentUser);
+if(!items.length){
+cartList.textContent="Your cart is empty";
+cartTotal.textContent="";
+return;
+}
+
+let total=0;
+
+items.forEach((item,index)=>{
+let c=data.cakes.find(c=>c.id===item.cakeId);
+if(!c)return;
+let price=c.price*item.quantity;
+total+=price;
+
+let d=document.createElement("div");
+d.className="cake";
+d.textContent=c.name+" | "+item.size+" | "+item.message+" | Quantity: "+item.quantity+" | ₹"+price;
+
+let remove=document.createElement("button");
+remove.textContent="Remove";
+remove.onclick=()=>{
+data.carts=data.carts.filter(x=>x!==item);
+save();
+showCart();
+};
+
+let increase=document.createElement("button");
+increase.textContent="+";
+increase.onclick=()=>{
+if(item.quantity<c.stock){
+item.quantity++;
+save();
+showCart();
+}else alert("Not enough stock");
+};
+
+let decrease=document.createElement("button");
+decrease.textContent="-";
+decrease.onclick=()=>{
+item.quantity--;
+if(item.quantity<=0)data.carts=data.carts.filter(x=>x!==item);
+save();
+showCart();
+};
+
+d.appendChild(increase);
+d.appendChild(decrease);
+d.appendChild(remove);
+cartList.appendChild(d);
+});
+
+cartTotal.textContent="Total: ₹"+total;
+}
+
+function placeOrder(){
+if(!currentUser){
+alert("Please log in first");
+show("login");
+return;
+}
+
+let name=val("shipName"),phone=val("shipPhone"),address=val("shipAddress"),city=val("shipCity"),pin=val("shipPin");
+
+if(!name||!phone||!address||!city||!pin){
+orderMsg.textContent="Fill all shipping details";
+return;
+}
+
+let items=data.carts.filter(x=>x.email===currentUser);
+if(!items.length){
+orderMsg.textContent="Your cart is empty";
+return;
+}
+
+for(let item of items){
+let c=data.cakes.find(c=>c.id===item.cakeId);
+if(!c||c.stock<item.quantity){
+orderMsg.textContent="Insufficient stock for "+(c?c.name:"a cake");
+return;
+}
+}
+
+let total=0;
+let orderItems=items.map(item=>{
+let c=data.cakes.find(c=>c.id===item.cakeId);
+c.stock-=item.quantity;
+total+=c.price*item.quantity;
+return {name:c.name,cakeId:c.id,quantity:item.quantity,size:item.size,message:item.message,price:c.price};
+});
+
+let order={
+id:"CAKE"+Date.now(),
+email:currentUser,
+name,phone,address,city,pin,
+items:orderItems,
+total,
+payment:val("payment"),
+status:"Order Placed"
+};
+
+data.orders.push(order);
+data.carts=data.carts.filter(x=>x.email!==currentUser);
+save();
+
+orderMsg.textContent="Order placed successfully! Order ID: "+order.id+" | Total: ₹"+total;
+refreshAdmin();
+}
+
+function showOrders(){
+orderList.innerHTML="";
+if(!currentUser){
+orderList.textContent="Please log in to view your orders";
+return;
+}
+
+let orders=data.orders.filter(o=>o.email===currentUser);
+if(!orders.length){
+orderList.textContent="No orders found";
+return;
+}
+
+orders.forEach(o=>{
+let d=document.createElement("div");
+d.className="cake";
+let items=o.items.map(i=>i.name+" ("+i.size+") x "+i.quantity).join(", ");
+d.innerHTML="<h3>Order ID: "+o.id+"</h3><p>"+items+"</p><p>Total: ₹"+o.total+"</p><p>Shipping: "+o.address+", "+o.city+" - "+o.pin+"</p><p>Payment: "+o.payment+"</p><p>Delivery Status: "+o.status+"</p>";
+
+let edit=document.createElement("button");
+edit.textContent="Update Address";
+edit.onclick=()=>updateAddress(o.id);
+d.appendChild(edit);
+
+orderList.appendChild(d);
+});
+}
+
+function updateAddress(id){
+let o=data.orders.find(o=>o.id===id&&o.email===currentUser);
+if(!o)return;
+let address=prompt("Enter new shipping address",o.address);
+if(address===null||!address.trim())return;
+let city=prompt("Enter new city",o.city);
+if(city===null||!city.trim())return;
+let pin=prompt("Enter new PIN code",o.pin);
+if(pin===null||!pin.trim())return;
+o.address=address.trim();
+o.city=city.trim();
+o.pin=pin.trim();
+save();
+showOrders();
+}
+
+function adminLogin(){
+if(val("adminPassword")==="admin123"){
+sessionStorage.setItem("cake_admin","yes");
+adminPanel.classList.remove("hidden");
+refreshAdmin();
+}else alert("Invalid admin password");
+}
+
+function addCake(){
+let name=val("cakeName"),description=val("cakeDescription"),price=Number(val("cakePrice")),stock=Number(val("cakeStock")),image=val("cakeImage");
+
+if(!name||!description||price<=0||!Number.isInteger(stock)||stock<0){
+alert("Enter valid cake details");
+return;
+}
+
+data.cakes.push({
+id:Date.now(),
+name,
+category:val("cakeCategory"),
+flavor:val("cakeFlavor"),
+description,
+price,
+stock,
+image:image||"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400"
+});
+
+save();
+refreshAdmin();
+showCakes();
+alert("Cake added successfully");
+}
+
+function refreshAdmin(){
+adminCakes.innerHTML="";
+adminOrders.innerHTML="";
+
+data.cakes.forEach(c=>{
+let d=document.createElement("div");
+d.className="cake";
+d.textContent=c.name+" | ₹"+c.price+" | Stock: "+c.stock;
+
+let edit=document.createElement("button");
+edit.textContent="Update Price/Stock";
+edit.onclick=()=>{
+let p=prompt("New price",c.price);
+let s=prompt("New stock",c.stock);
+if(p===null||s===null||Number(p)<=0||!Number.isInteger(Number(s))||Number(s)<0){
+alert("Enter valid price and stock");
+return;
+}
+c.price=Number(p);
+c.stock=Number(s);
+save();
+refreshAdmin();
+};
+
+let del=document.createElement("button");
+del.textContent="Delete";
+del.onclick=()=>{
+if(data.orders.some(o=>o.items.some(i=>i.cakeId===c.id))){
+alert("This cake is included in order history and cannot be deleted.");
+return;
+}
+data.cakes=data.cakes.filter(x=>x.id!==c.id);
+save();
+refreshAdmin();
+};
+
+d.appendChild(edit);
+d.appendChild(del);
+adminCakes.appendChild(d);
+});
+
+data.orders.forEach(o=>{
+let d=document.createElement("div");
+d.className="cake";
+d.textContent=o.id+" | "+o.name+" | ₹"+o.total+" | "+o.status+" | "+o.city;
+
+let status=document.createElement("select");
+["Order Placed","Preparing","Shipped","Out for Delivery","Delivered","Cancelled"].forEach(s=>{
+let opt=document.createElement("option");
+opt.value=s;
+opt.textContent=s;
+opt.selected=o.status===s;
+status.appendChild(opt);
+});
+
+status.onchange=()=>{
+if(status.value==="Cancelled"&&o.status!=="Cancelled"){
+o.items.forEach(i=>{
+let c=data.cakes.find(c=>c.id===i.cakeId);
+if(c)c.stock+=i.quantity;
+});
+}
+o.status=status.value;
+save();
+refreshAdmin();
+};
+
+d.appendChild(status);
+adminOrders.appendChild(d);
+});
+}
+
+save();
+show("home");
+</script>
+
+</body>
+</html>
